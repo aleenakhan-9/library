@@ -1,11 +1,15 @@
-const SHEET_ID = '1OiEVshjY2Dg1ACtVS-Jcp2LXF1qWepb8shAUNlXrOmc'; // replace this with your real sheet ID
+// Replace with your actual published Google Sheets ID
+const SHEET_ID = '1OiEVshjY2Dg1ACtVS-Jcp2LXF1qWepb8shAUNlXrOmc';
 const SHEET_NAME = 'Full Card Catalog [DO NOT FILTER]';
 const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(SHEET_NAME)}`;
+
 let rawData = [];
+
 async function loadData() {
   const response = await fetch(SHEET_URL);
   const text = await response.text();
   const json = JSON.parse(text.substring(47).slice(0, -2));
+
   const cols = json.table.cols.map(col => col.label);
   const rows = json.table.rows.map(row => {
     let obj = {};
@@ -14,10 +18,12 @@ async function loadData() {
     });
     return obj;
   });
+
   rawData = rows;
   populateFilters(rows);
   renderTable(rows);
 }
+
 function populateFilters(data) {
   populateDropdown("yearFilter", data.map(d => d["Year"]));
   populateDropdown("locationFilter", data.map(d => d["Location"]));
@@ -26,6 +32,7 @@ function populateFilters(data) {
   populateDropdown("focusFilter", data.map(d => d["Focus Area"]));
   populateDropdown("actorFilter", data.map(d => d["Actors"]));
 }
+
 function populateDropdown(id, values) {
   const select = document.getElementById(id);
   const unique = [...new Set(values.filter(Boolean))].sort();
@@ -37,6 +44,7 @@ function populateDropdown(id, values) {
   });
   $(`#${id}`).select2({ placeholder: `All ${id.replace("Filter", "")}` });
 }
+
 function applyFilters() {
   const years = $('#yearFilter').val() || [];
   const locs = $('#locationFilter').val() || [];
@@ -45,6 +53,7 @@ function applyFilters() {
   const focus = $('#focusFilter').val() || [];
   const actors = $('#actorFilter').val() || [];
   const searchText = $('#pdfSearch').val().toLowerCase();
+
   const filtered = rawData.filter(item => {
     return (
       (years.length === 0 || years.includes(item["Year"])) &&
@@ -56,17 +65,16 @@ function applyFilters() {
       (!searchText || (item["pdfText"] || "").toLowerCase().includes(searchText))
     );
   });
+
   renderTable(filtered);
 }
+
 function renderTable(data) {
   const tableBody = document.querySelector("#alertsTable tbody");
   tableBody.innerHTML = "";
   data.forEach(item => {
     const row = document.createElement("tr");
-    const dateRaw = item['Date (YYYY-MM-DD)'];
-    const date = (typeof dateRaw === "object" && dateRaw.toLocaleDateString)
-      ? dateRaw.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })
-      : dateRaw;
+    const date = item['Date (YYYY-MM-DD)'];
     const title = `
       <strong>${item['Title']}</strong><br/>
       <span class='access-tag'>${item['Access']}</span><br/>
@@ -86,12 +94,13 @@ function renderTable(data) {
     `;
     tableBody.appendChild(row);
   });
+
   if ($.fn.dataTable.isDataTable("#alertsTable")) {
     $('#alertsTable').DataTable().destroy();
   }
   $('#alertsTable').DataTable({ pageLength: 15 });
 }
-// Event bindings
+
 $(document).ready(() => {
   loadData();
   $(".filters select").on("change", applyFilters);
