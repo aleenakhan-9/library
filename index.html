@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>BDI Dashboard</title>
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css"/>
+  <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    .filters { display: flex; flex-wrap: wrap; justify-content: center; margin-bottom: 20px; }
+    .filters .select2-container { width: 180px !important; margin: 4px; }
+    table.dataTable thead th { background-color: black; color: white; }
+    .access-tag { background: #5BB1A9; color: white; padding: 3px 6px; border-radius: 10px; font-size: 11px; }
+    .download-btn { background: #F4A020; color: white; padding: 5px 10px; border-radius: 4px; text-decoration: none; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <h2 style="text-align:center;">BDI Analysis</h2>
+  <div class="filters">
+    <select id="yearFilter" multiple></select>
+    <select id="locationFilter" multiple></select>
+    <select id="typeFilter" multiple></select>
+    <select id="accessFilter" multiple></select>
+    <select id="focusFilter" multiple></select>
+    <select id="actorFilter" multiple></select>
+    <input type="text" id="pdfSearch" placeholder="Search text in PDF..." style="margin:4px; padding:5px;">
+  </div>
+  <table id="alertsTable" class="display" style="width:100%">
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Title</th>
+        <th>Type</th>
+        <th>Location</th>
+        <th>Download</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+  <script>
+    const apiURL = "https://script.google.com/a/macros/princeton.edu/s/AKfycbwW6RsaSUpsdXOX5OGI781JiWd3EGePA_6P6ctfUSQbC86XReS-Lrf9GWfBic3CSA1M/exec"; // Update script URL here
+    let rawData = [];
+    function populateDropdown(id, values) {
+      const select = document.getElementById(id);
+      const unique = [...new Set(values.filter(Boolean))].sort();
+      unique.forEach(val => {
+        const option = document.createElement("option");
+        option.value = val;
+        option.textContent = val;
+        select.appendChild(option);
+      });
+      $(`#${id}`).select2({ placeholder: id.replace("Filter", "") });
+    }
+    function applyFilters() {
+      const years = $('#yearFilter').val() || [];
+      const locs = $('#locationFilter').val() || [];
+      const types = $('#typeFilter').val() || [];
+      const access = $('#accessFilter').val() || [];
+      const focus = $('#focusFilter').val() || [];
+      const actors = $('#actorFilter').val() || [];
+      const textSearch = $('#pdfSearch').val().toLowerCase();
+      const filtered = rawData.filter(item => {
+        return (!years.length || years.includes(item["Year"])) &&
+               (!locs.length || locs.includes(item["Location"])) &&
+               (!types.length || types.includes(item["Document Type"])) &&
+               (!access.length || access.includes(item["Access"])) &&
+               (!focus.length || focus.includes(item["Focus Area"])) &&
+               (!actors.length || actors.includes(item["Actors"])) &&
+               (!textSearch || (item["pdfText"] || "").toLowerCase().includes(textSearch));
+      });
+      renderTable(filtered);
+    }
+    function renderTable(data) {
+      const tableBody = document.querySelector("#alertsTable tbody");
+      tableBody.innerHTML = "";
+      data.forEach(item => {
+        const row = document.createElement("tr");
+        const date = new Date(item['Date (YYYY-MM-DD)']).toLocaleDateString();
+        const title = `<strong>${item['Title']}</strong><br/><span class='access-tag'>${item['Access']}</span><br/>${item['Description']}`;
+        const type = item['Document Type'];
+        const location = item['Location'];
+        const download = item['Download [Internal]']
+          ? `<a href="${item['Download [Internal]']}" class="download-btn" target="_blank">Download</a>`
+          : '';
+        row.innerHTML = `<td>${date}</td><td>${title}</td><td>${type}</td><td>${location}</td><td>${download}</td>`;
+        tableBody.appendChild(row);
+      });
+      if ($.fn.dataTable.isDataTable("#alertsTable")) {
+        $('#alertsTable').DataTable().destroy();
+      }
+      $('#alertsTable').DataTable({ pageLength: 15 });
+    }
+    fetch(apiURL)
+      .then(res => res.json())
+      .then(data => {
+        rawData = data;
+        populateDropdown("yearFilter", data.map(d => d["Year"]));
+        populateDropdown("locationFilter", data.map(d => d["Location"]));
+        populateDropdown("typeFilter", data.map(d => d["Document Type"]));
+        populateDropdown("accessFilter", data.map(d => d["Access"]));
+        populateDropdown("focusFilter", data.map(d => d["Focus Area"]));
+        populateDropdown("actorFilter", data.map(d => d["Actors"]));
+        renderTable(data);
+      });
+    $(".filters select, #pdfSearch").on("change keyup", applyFilters);
+  </script>
+</body>
+</html>
