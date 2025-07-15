@@ -1,5 +1,13 @@
 const scriptURL = 'https://script.google.com/a/macros/princeton.edu/s/AKfycbwW6RsaSUpsdXOX5OGI781JiWd3EGePA_6P6ctfUSQbC86XReS-Lrf9GWfBic3CSA1M/exec';
+
 let rawData = [];
+
+function formatDate(dateString) {
+  if (!dateString) return "";
+  const date = new Date(dateString);
+  if (isNaN(date)) return dateString;
+  return date.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+}
 
 function populateDropdown(id, values) {
   const select = $(`#${id}`);
@@ -25,28 +33,21 @@ function applyFilters() {
   const textSearch = $('#pdfSearch').val().toLowerCase();
 
   const filtered = rawData.filter(item => {
-    return (year.length === 0 || year.includes(item["Year"])) &&
-           (loc.length === 0 || loc.includes(item["Location"])) &&
-           (type.length === 0 || type.includes(item["Document Type"])) &&
-           (access.length === 0 || access.includes(item["Access"])) &&
-           (focus.length === 0 || focus.includes(item["Focus Area"])) &&
-           (actors.length === 0 || actors.includes(item["Actors"])) &&
+    return (!year.length || year.includes(item["Year"])) &&
+           (!loc.length || loc.includes(item["Location"])) &&
+           (!type.length || type.includes(item["Document Type"])) &&
+           (!access.length || access.includes(item["Access"])) &&
+           (!focus.length || focus.includes(item["Focus Area"])) &&
+           (!actors.length || actors.includes(item["Actors"])) &&
            (!textSearch || (item["pdfText"] || "").toLowerCase().includes(textSearch));
   });
-
   renderTable(filtered);
-}
-
-function formatDate(dateString) {
-  if (!dateString) return "";
-  const parsed = Date.parse(dateString);
-  if (isNaN(parsed)) return dateString;
-  return new Date(parsed).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
 }
 
 function renderTable(data) {
   const tableBody = document.querySelector("#alertsTable tbody");
   tableBody.innerHTML = "";
+
   data.sort((a, b) => new Date(b["Date (YYYY-MM-DD)"]) - new Date(a["Date (YYYY-MM-DD)"]));
 
   data.forEach(item => {
@@ -60,7 +61,7 @@ function renderTable(data) {
     const docType = item["Document Type"] || "";
     const location = item["Location"] || "";
     const download = item["Download [Internal]"]
-      ? `<a href="${item["Download [Internal"]]}" class="download-btn" target="_blank">Download</a>`
+      ? `<a href="${item["Download [Internal]"]}" class="download-btn" target="_blank">Download</a>`
       : "";
 
     row.innerHTML = `
@@ -76,10 +77,11 @@ function renderTable(data) {
   if ($.fn.dataTable.isDataTable("#alertsTable")) {
     $('#alertsTable').DataTable().destroy();
   }
+
   $('#alertsTable').DataTable({
     pageLength: 25,
     order: [[0, 'desc']],
-    dom: 'lrtip'
+    dom: 'lrtip' // hides default search bar
   });
 }
 
