@@ -1,4 +1,3 @@
-// Replace with your actual published Google Sheets ID
 const SHEET_ID = '1OiEVshjY2Dg1ACtVS-Jcp2LXF1qWepb8shAUNlXrOmc';
 const SHEET_NAME = 'Full Card Catalog [DO NOT FILTER]';
 const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(SHEET_NAME)}`;
@@ -25,24 +24,28 @@ async function loadData() {
 }
 
 function populateFilters(data) {
-  populateDropdown("yearFilter", data.map(d => d["Year"]));
-  populateDropdown("locationFilter", data.map(d => d["Location"]));
-  populateDropdown("typeFilter", data.map(d => d["Document Type"]));
-  populateDropdown("accessFilter", data.map(d => d["Access"]));
-  populateDropdown("focusFilter", data.map(d => d["Focus Area"]));
-  populateDropdown("actorFilter", data.map(d => d["Actors"]));
-}
-
-function populateDropdown(id, values) {
-  const select = document.getElementById(id);
-  const unique = [...new Set(values.filter(Boolean))].sort();
-  unique.forEach(val => {
-    const option = document.createElement("option");
-    option.value = val;
-    option.textContent = val;
-    select.appendChild(option);
+  ["year", "location", "type", "access", "focus", "actor"].forEach(id => {
+    const keyMap = {
+      year: "Year",
+      location: "Location",
+      type: "Document Type",
+      access: "Access",
+      focus: "Focus Area",
+      actor: "Actors"
+    };
+    const values = data.map(d => d[keyMap[id]]);
+    const select = document.getElementById(`${id}Filter`);
+    select.innerHTML = '';
+    const unique = [...new Set(values.filter(Boolean))].sort();
+    unique.forEach(val => {
+      const option = document.createElement("option");
+      option.value = val;
+      option.textContent = val;
+      select.appendChild(option);
+    });
   });
-  $(`#${id}`).select2({ placeholder: `All ${id.replace("Filter", "")}` });
+
+  $(".filters select").select2({ placeholder: "Select..." }).on("change", applyFilters);
 }
 
 function applyFilters() {
@@ -73,24 +76,15 @@ function renderTable(data) {
   const tableBody = document.querySelector("#alertsTable tbody");
   tableBody.innerHTML = "";
   data.forEach(item => {
+    const rawDate = new Date(item['Date (YYYY-MM-DD)']);
+    const formattedDate = rawDate.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
     const row = document.createElement("tr");
-    const date = item['Date (YYYY-MM-DD)'];
-    const title = `
-      <strong>${item['Title']}</strong><br/>
-      <span class='access-tag'>${item['Access']}</span><br/>
-      ${item['Description']}
-    `;
-    const type = item['Document Type'];
-    const location = item['Location'];
-    const download = item['Download [Internal]']
-      ? `<a href="${item['Download [Internal]']}" class="download-btn" target="_blank">Download</a>`
-      : '';
     row.innerHTML = `
-      <td>${date}</td>
-      <td>${title}</td>
-      <td>${type}</td>
-      <td>${location}</td>
-      <td>${download}</td>
+      <td data-order="${item['Date (YYYY-MM-DD)']}">${formattedDate}</td>
+      <td><strong>${item['Title']}</strong><br/><span class='access-tag'>${item['Access']}</span><br/>${item['Description']}</td>
+      <td>${item['Document Type']}</td>
+      <td>${item['Location']}</td>
+      <td>${item['Download [Internal]'] ? `<a href="${item['Download [Internal]']}" class="download-btn" target="_blank">Download</a>` : ''}</td>
     `;
     tableBody.appendChild(row);
   });
@@ -98,11 +92,13 @@ function renderTable(data) {
   if ($.fn.dataTable.isDataTable("#alertsTable")) {
     $('#alertsTable').DataTable().destroy();
   }
-  $('#alertsTable').DataTable({ pageLength: 15 });
+  $('#alertsTable').DataTable({
+    pageLength: 15,
+    order: [[0, 'desc']]
+  });
 }
 
 $(document).ready(() => {
   loadData();
-  $(".filters select").on("change", applyFilters);
   $("#pdfSearch").on("keyup", applyFilters);
 });
