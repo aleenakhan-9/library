@@ -3,51 +3,21 @@ const SHEET_NAME = 'Full Card Catalog [DO NOT FILTER]';
 const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(SHEET_NAME)}`;
 
 let rawData = [];
-
-async function loadData() {
-  const response = await fetch(SHEET_URL);
-  const text = await response.text();
-  const json = JSON.parse(text.substring(47).slice(0, -2));
-
-  const cols = json.table.cols.map(col => col.label);
-  const rows = json.table.rows.map(row => {
-    let obj = {};
-    row.c.forEach((cell, i) => {
-      obj[cols[i]] = cell ? cell.v : "";
-    });
-    return obj;
+function populateDropdown(id, values) {
+  const select = document.getElementById(id);
+  const unique = [...new Set(values.filter(Boolean))].sort();
+  unique.forEach(val => {
+    const option = document.createElement("option");
+    option.value = val;
+    option.textContent = val;
+    select.appendChild(option);
   });
-
-  rawData = rows;
-  populateFilters(rows);
-  renderTable(rows);
-}
-
-function populateFilters(data) {
-  ["year", "location", "type", "access", "focus", "actor"].forEach(id => {
-    const keyMap = {
-      year: "Year",
-      location: "Location",
-      type: "Document Type",
-      access: "Access",
-      focus: "Focus Area",
-      actor: "Actors"
-    };
-    const values = data.map(d => d[keyMap[id]]);
-    const select = document.getElementById(`${id}Filter`);
-    select.innerHTML = '';
-    const unique = [...new Set(values.filter(Boolean))].sort();
-    unique.forEach(val => {
-      const option = document.createElement("option");
-      option.value = val;
-      option.textContent = val;
-      select.appendChild(option);
-    });
+  $(`#${id}`).select2({
+    placeholder: `Select...`,
+    allowClear: true,
+    width: 'resolve'
   });
-
-  $(".filters select").select2({ placeholder: "Select..." }).on("change", applyFilters);
 }
-
 function applyFilters() {
   const years = $('#yearFilter').val() || [];
   const locs = $('#locationFilter').val() || [];
@@ -55,8 +25,7 @@ function applyFilters() {
   const access = $('#accessFilter').val() || [];
   const focus = $('#focusFilter').val() || [];
   const actors = $('#actorFilter').val() || [];
-  const searchText = $('#pdfSearch').val().toLowerCase();
-
+  const textSearch = $('#pdfSearch').val().toLowerCase();
   const filtered = rawData.filter(item => {
     return (
       (years.length === 0 || years.includes(item["Year"])) &&
@@ -65,40 +34,67 @@ function applyFilters() {
       (access.length === 0 || access.includes(item["Access"])) &&
       (focus.length === 0 || focus.includes(item["Focus Area"])) &&
       (actors.length === 0 || actors.includes(item["Actors"])) &&
-      (!searchText || (item["pdfText"] || "").toLowerCase().includes(searchText))
+      (!textSearch || (item["pdfText"] || "").toLowerCase().includes(textSearch))
     );
   });
-
   renderTable(filtered);
 }
-
 function renderTable(data) {
   const tableBody = document.querySelector("#alertsTable tbody");
   tableBody.innerHTML = "";
   data.forEach(item => {
-    const rawDate = new Date(item['Date (YYYY-MM-DD)']);
-    const formattedDate = rawDate.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+    const rawDate = item["Date (YYYY-MM-DD)"];
+    let formattedDate = "";
+    if (rawDate) {
+      const parsed = new Date(rawDate);
+      if (!isNaN(parsed)) {
+        formattedDate = parsed.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+      } else {
+        formattedDate = rawDate;
+      }
+    }
+    const title = `
+      <strong>${item['Title']}</strong><br/>
+      <span class='access-tag'>${item['Access']}</span><br/>
+      ${item['Description'] || ""}
+    `;
+    const type = item['Document Type'];
+    const location = item['Location'];
+    const download = item['Download [Internal]']
+      ? `<a href="${item['Download [Internal]']}" class="download-btn" target="_blank">Download</a>`
+      : '';
     const row = document.createElement("tr");
     row.innerHTML = `
-      <td data-order="${item['Date (YYYY-MM-DD)']}">${formattedDate}</td>
-      <td><strong>${item['Title']}</strong><br/><span class='access-tag'>${item['Access']}</span><br/>${item['Description']}</td>
-      <td>${item['Document Type']}</td>
-      <td>${item['Location']}</td>
-      <td>${item['Download [Internal]'] ? `<a href="${item['Download [Internal]']}" class="download-btn" target="_blank">Download</a>` : ''}</td>
+      <td>${formattedDate}</td>
+      <td>${title}</td>
+      <td>${type}</td>
+      <td>${location}</td>
+      <td>${download}</td>
     `;
     tableBody.appendChild(row);
   });
-
   if ($.fn.dataTable.isDataTable("#alertsTable")) {
     $('#alertsTable').DataTable().destroy();
   }
   $('#alertsTable').DataTable({
     pageLength: 15,
-    order: [[0, 'desc']]
+    order: [[0, 'desc']], // sort by date descending
+    dom: 'lrtip' // hide built-in search bar
   });
 }
-
+fetch("data.json")
+  .then(res => res.json())
+  .then(data => {
+    rawData = data;
+    populateDropdown("yearFilter", data.map(d => d["Year"]));
+    populateDropdown("locationFilter", data.map(d => d["Location"]));
+    populateDropdown("typeFilter", data.map(d => d["Document Type"]));
+    populateDropdown("accessFilter", data.map(d => d["Access"]));
+    populateDropdown("focusFilter", data.map(d => d["Focus Area"]));
+    populateDropdown("actorFilter", data.map(d => d["Actors"]));
+    renderTable(rawData);
+  });
 $(document).ready(() => {
-  loadData();
+  $(".filters select").on("change", applyFilters);
   $("#pdfSearch").on("keyup", applyFilters);
 });
