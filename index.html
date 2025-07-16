@@ -4,9 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>BDI Analysis</title>
-  <!-- DataTables and Select2 CSS -->
+
+  <!-- Stylesheets -->
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css" />
   <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
   <style>
     body {
       font-family: sans-serif;
@@ -22,8 +24,9 @@
       gap: 10px;
       margin-bottom: 20px;
     }
-    .filters select {
+    .filters select, .filters input {
       width: 180px;
+      padding: 4px;
     }
     .access-tag {
       background-color: #5BB1A9;
@@ -56,15 +59,17 @@
 </head>
 <body>
   <h2>BDI Analysis</h2>
+
   <div class="filters">
     <select id="yearFilter" multiple></select>
-    <select id="locationFilter" multiple></select>
     <select id="typeFilter" multiple></select>
+    <select id="locationFilter" multiple></select>
     <select id="accessFilter" multiple></select>
     <select id="focusFilter" multiple></select>
     <select id="actorFilter" multiple></select>
-    <input type="text" id="pdfSearch" placeholder="Search..." style="padding: 5px; width: 180px;" />
+    <input type="text" id="pdfSearch" placeholder="Search text in PDFs" />
   </div>
+
   <table id="alertsTable" class="display" style="width:100%">
     <thead>
       <tr>
