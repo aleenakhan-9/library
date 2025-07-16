@@ -1,15 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>BDI Analysis</title>
-  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
+  <!-- DataTables and Select2 CSS -->
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css" />
   <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
   <style>
     body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
+      font-family: sans-serif;
+      padding: 20px;
     }
     h2 {
       text-align: center;
@@ -18,11 +19,10 @@
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
-      margin-bottom: 20px;
       gap: 10px;
+      margin-bottom: 20px;
     }
-    .filters select,
-    .filters input {
+    .filters select {
       width: 180px;
     }
     .access-tag {
@@ -60,7 +60,7 @@
     <select id="accessFilter" multiple></select>
     <select id="focusFilter" multiple></select>
     <select id="actorFilter" multiple></select>
-    <input type="text" id="pdfSearch" placeholder="Search text in PDFs">
+    <input type="text" id="pdfSearch" placeholder="Search text in PDFs" style="padding: 5px; width: 180px;" />
   </div>
   <table id="alertsTable" class="display" style="width:100%">
     <thead>
@@ -74,6 +74,7 @@
     </thead>
     <tbody></tbody>
   </table>
+  <!-- Scripts -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
