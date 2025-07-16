@@ -1,72 +1,82 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="UTF-8" />
-    <title>BDI Analysis</title>
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css"/>
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    <style>
-      .filters {
-        margin: 10px 0;
-        text-align: center;
-        flex-wrap: wrap;
-      }
-      .filters .select2 {
-        width: 180px !important;
-        margin: 4px;
-      }
-      .access-tag {
-        background-color: #5BB1A9;
-        color: white;
-        font-size: 11px;
-        padding: 3px 6px;
-        border-radius: 10px;
-        display: inline-block;
-        margin-top: 4px;
-      }
-      .download-btn {
-        background-color: #F4A020;
-        color: white;
-        padding: 5px 10px;
-        border-radius: 4px;
-        text-decoration: none;
-        font-size: 12px;
-      }
-      table.dataTable thead th {
-        background-color: #000;
-        color: white;
-      }
-      td {
-        font-size: 13px;
-      }
-    </style>
-  </head>
-  <body>
-    <h2 style="text-align:center;">BDI Analysis</h2>
-    <div class="filters" style="display:flex; justify-content:center;">
-      <select id="yearFilter" multiple></select>
-      <select id="locationFilter" multiple></select>
-      <select id="typeFilter" multiple></select>
-      <select id="accessFilter" multiple></select>
-      <select id="focusFilter" multiple></select>
-      <select id="actorFilter" multiple></select>
-      <input type="text" id="pdfSearch" placeholder="Search..." style="margin:4px; padding:5px;">
-    </div>
-    <table id="alertsTable" class="display" style="width:100%">
-      <thead>
-        <tr>
-          <th>Date</th>
-          <th>Title</th>
-          <th>Type</th>
-          <th>Location</th>
-          <th>Download</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-    <script src="script.js"></script>
-  </body>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BDI Analysis</title>
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
+  <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    h2 {
+      text-align: center;
+    }
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 20px;
+      gap: 10px;
+    }
+    .filters select,
+    .filters input {
+      width: 180px;
+    }
+    .access-tag {
+      background-color: #5BB1A9;
+      color: white;
+      font-size: 11px;
+      padding: 3px 6px;
+      border-radius: 10px;
+      display: inline-block;
+      margin-top: 4px;
+    }
+    .download-btn {
+      background-color: #F4A020;
+      color: white;
+      padding: 5px 10px;
+      border-radius: 4px;
+      text-decoration: none;
+      font-size: 12px;
+    }
+    table.dataTable thead th {
+      background-color: #000;
+      color: white;
+    }
+    td {
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <h2>BDI Analysis</h2>
+  <div class="filters">
+    <select id="yearFilter" multiple></select>
+    <select id="locationFilter" multiple></select>
+    <select id="typeFilter" multiple></select>
+    <select id="accessFilter" multiple></select>
+    <select id="focusFilter" multiple></select>
+    <select id="actorFilter" multiple></select>
+    <input type="text" id="pdfSearch" placeholder="Search text in PDFs">
+  </div>
+  <table id="alertsTable" class="display" style="width:100%">
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Title</th>
+        <th>Type</th>
+        <th>Location</th>
+        <th>Download</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+  <script src="script.js"></script>
+</body>
 </html>
